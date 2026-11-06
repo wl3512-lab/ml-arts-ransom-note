@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ransom Note · Lucy Liu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Courier+Prime:wght@700&family=Playfair+Display:ital,wght@1,700&family=Silkscreen&family=Special+Elite&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"></script>
+  <style>
+    :root{--bg:#1f1226;--panel:#2a1832;--line:#ffffff2b;--ink:#fff;--soft:#e9d3ee;--pink:#ff6fae;--pink-soft:#ffd6e8;--warn:#ffb3c7}
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%}
+    body{background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,sans-serif;display:grid;grid-template-columns:340px 1fr;height:100vh}
+    #panel{padding:18px;background:var(--panel);border-right:1px solid var(--line);overflow:auto;display:flex;flex-direction:column;gap:10px}
+    #stage{position:relative;min-width:0;min-height:0}
+    #stage canvas{display:block}
+    .eyebrow{font:11px "Silkscreen",ui-monospace,monospace;letter-spacing:1px;color:var(--soft)}
+    h1{font:400 30px/1.05 "Silkscreen",ui-monospace,monospace;margin:0;color:var(--pink-soft)}
+    p{margin:0;color:var(--soft)}
+    label{display:block;font-weight:600;font-size:13px;margin-bottom:4px}
+    label small{font-weight:400;color:var(--soft)}
+    textarea,input[type=text],input[type=password]{width:100%;font:inherit;color:inherit;background:#ffffff12;border:1px solid #ffffff45;border-radius:7px;padding:8px 10px}
+    textarea{height:130px;resize:vertical}
+    textarea:focus,input:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--pink);outline-offset:1px}
+    .row{display:flex;flex-wrap:wrap;gap:6px}
+    button{font:inherit;cursor:pointer;border:1px solid #ffffff45;border-radius:7px;padding:7px 11px;color:inherit;background:#ffffff12}
+    button:hover{background:#ffffff26}
+    button:disabled{opacity:.4;cursor:default}
+    button.primary{background:var(--pink-soft);color:#3a1430;border-color:var(--pink-soft);font-weight:600}
+    #status{min-height:21px}
+    #status.error{color:var(--warn)}
+    #smuggled{color:var(--pink-soft)}
+    #smuggled:empty{display:none}
+    details{color:var(--soft)}
+    summary{cursor:pointer;font-weight:600;font-size:13px}
+    details[open] summary{margin-bottom:6px}
+    a{color:var(--pink-soft)}
+    .small{font-size:12px}
+    @media(max-width:760px){
+      html,body{height:auto}
+      body{display:flex;flex-direction:column;height:auto}
+      #stage{order:-1;height:135vw;max-height:80vh;flex:none}
+      #panel{border-right:0;border-top:1px solid var(--line);overflow:visible;padding:16px}
+    }
+  </style>
+</head>
+<body>
+  <section id="panel" aria-label="Ransom Note controls">
+    <div class="eyebrow">ML Arts · Assignment 09</div>
+    <h1>Ransom Note</h1>
+    <p>Gemini has no words of its own here. It can only answer with words cut from your page, and each one can be cut once. The code checks every word, and anything that isn't on the page gets refused.</p>
+    <div>
+      <label for="source">Your page <small>(<span id="wordCount">0</span> words left)</small></label>
+      <textarea id="source" spellcheck="false" maxlength="6000"></textarea>
+    </div>
+    <div class="row">
+      <button id="fresh">Fresh page</button>
+      <button id="sample">Use the sample poems</button>
+    </div>
+    <div>
+      <label for="question">Ask it something</label>
+      <input id="question" type="text" autocomplete="off" value="who wrote you?">
+    </div>
+    <div class="row">
+      <button id="ask" class="primary">Cut me an answer</button>
+      <button id="savePng" disabled>Save note</button>
+    </div>
+    <p id="status" role="status"></p>
+    <p id="smuggled"></p>
+    <details id="keyBox">
+      <summary>Gemini API key</summary>
+      <input id="apiKey" type="password" autocomplete="off" aria-label="Gemini API key" placeholder="paste your key">
+      <p class="small" style="margin-top:6px">Stays in this browser and only goes to Google. <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get one in AI Studio</a>. <button id="forget" class="small">Forget key</button></p>
+    </details>
+  </section>
+  <div id="stage" aria-label="Your page on the left, the ransom note on the right"></div>
+  <p id="noteText" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)"></p>
+  <script src="ransom-logic.js?v=2026-11-06c"></script>
+  <script src="sketch.js?v=2026-11-06c"></script>
+</body>
+</html>

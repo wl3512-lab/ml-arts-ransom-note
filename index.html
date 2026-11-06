@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Lucy Liu's ML Arts Assignment 9: a p5.js sketch where Gemini can only answer with words cut out of your own page.">
+  <title>Ransom Note · Lucy Liu · ML Arts 09</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#fff5fa;--ink:#2a1630;--muted:#6e5470;--line:#ecd3e2;--accent:#c2185b;--chip:#fbe3ef;--code:#f6e1ec}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,sans-serif}
+    main{max-width:1000px;margin:auto;padding:56px 28px 80px}
+    .meta{font:12px/1.7 "Silkscreen",ui-monospace,monospace;letter-spacing:.04em;color:var(--muted)}
+    h1{font-family:"Silkscreen",ui-monospace,monospace;font-weight:400;font-size:clamp(42px,8vw,84px);line-height:1;letter-spacing:-.02em;margin:26px 0 22px;color:var(--accent)}
+    h2{font-size:26px;letter-spacing:-.03em;line-height:1.25;margin:0 0 18px}
+    p{max-width:690px;margin:0 0 20px}
+    .lead{font-size:22px;line-height:1.45;max-width:740px}
+    a{color:var(--accent);text-underline-offset:4px}
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0 36px}
+    .button{display:inline-block;padding:11px 18px;border:1px solid var(--accent);border-radius:6px;text-decoration:none}
+    .button.primary{background:var(--accent);color:#fff}
+    figure{margin:0 0 22px}
+    img{display:block;max-width:100%;height:auto;border-radius:6px}
+    figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top:10px;max-width:760px}
+    .section{border-top:1px solid var(--line);padding-top:34px;margin-top:44px;display:grid;grid-template-columns:185px 1fr;gap:30px}
+    .section .content{min-width:0}
+    .pipeline{font:14px/1.8 ui-monospace,monospace;padding:16px 18px;background:var(--chip);border-radius:6px;margin:22px 0}
+    table{border-collapse:collapse;width:100%;font-size:15px;margin:18px 0 26px}
+    td,th{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+    code{font-size:.86em;background:var(--code);padding:2px 5px;border-radius:3px}
+    blockquote{margin:0 0 20px;padding-left:16px;border-left:3px solid #f19cc4;max-width:690px}
+    .phone{max-width:280px}
+    footer{border-top:1px solid var(--line);margin-top:50px;padding-top:22px;font-size:13px;color:var(--muted)}
+    @media(max-width:650px){main{padding:32px 16px 55px}.section{grid-template-columns:1fr;gap:8px}.lead{font-size:19px}table{font-size:14px}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="meta">Lucy Liu · Intro to Machine Learning for the Arts<br>Assignment 09 · Text and Language Models · November 6, 2026</div>
+    <h1>Ransom Note</h1>
+    <p class="lead">Gemini has no words of its own here. You give it a page of text and ask it something, and it has to answer using only words from that page. p5.js tears each word out, leaving a hole, and glues it to a black note. Every word can only be cut once, so the page runs out of things to say.</p>
+    <div class="actions">
+      <a class="button primary" href="sketch/">Open the sketch</a>
+      <a class="button" href="https://github.com/wl3512-lab/ml-arts-ransom-note">Code</a>
+    </div>
+    <figure>
+      <img src="media/note-2-holes.png" alt="The sketch: a page of colourful text clippings with holes where words were cut out, and a black note reading I'm nobody, They'd banish us." width="1280" height="760">
+      <figcaption>Second question on the same page. Asked "what are you afraid of?", it answered "I'm nobody / They'd banish us", from two Emily Dickinson poems. The dark holes are words used in both answers.</figcaption>
+    </figure>
+  </header>
+
+  <section class="section">
+    <h2>The idea</h2>
+    <div class="content">
+      <p>This comes straight from Allison Parrish's <a href="https://posts.decontextualize.com/language-models-ransom-notes/">"Language models can only write ransom notes"</a>, from the week 9 reading list. Parrish argues that a language model's output is a collage of tokens taken from its training documents, and describes picturing it:</p>
+      <blockquote>"I like to imagine that I can see each token typeset in the style of its sources, with (metaphorical) tear marks from where they've been torn from the (virtual) page."</blockquote>
+      <p>The sketch makes that literal. A normal chatbot hides where its words came from. Here the source is one page sitting right next to the answer, so you can see exactly whose voice it is using. That's the question in the Parrish quote at the top of the class notes: knowing "whose voices" you're speaking with.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>How it works</h2>
+    <div class="content">
+      <div class="pipeline">your text → split into words, grouped into clippings<br>→ list of uncut words + your question → Gemini (gemini-2.5-flash)<br>→ JSON list of words → checked against the page<br>→ scraps fly to the note, holes stay in the page</div>
+      <p>Asking the model nicely isn't a rule, so the code enforces it. <code>matchReply()</code> checks each returned word against an uncut word on the page. Anything that doesn't match is refused. Gemini gets one more try with the refused words named, and whatever still fails is left off the note and listed under it. "running" doesn't pass because "run" is on the page, and "the" can only be used as many times as it appears.</p>
+      <figure>
+        <img src="media/refused.png" alt="The sketch showing a short note reading Hope the bird, with a line under the controls saying Refused 2 words that weren't yours: electricity, computer." width="1280" height="760">
+        <figcaption>The refusal check. <b>This reply is staged:</b> I fed in a fake response containing "electricity" and "computer" to test it, because Gemini never broke the rule in the live replies below.</figcaption>
+      </figure>
+      <p>Gemini returns structured JSON (<code>responseSchema</code>), which stops it wrapping the answer in chatty text. Every word maps to a real position on the page, so the holes are accurate. Replies took 4 to 15 seconds in testing, and some Gemini models returned 503 "high demand" errors, so if the main model is overloaded the sketch falls back to <code>gemini-3.5-flash</code>. The API key is pasted into the page and stays in your browser, so it isn't in this public repo.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>What it said</h2>
+    <div class="content">
+      <p>The sample page is "Hope is the thing with feathers" and "I'm Nobody! Who are you?" by Emily Dickinson, 90 words in total. These are real replies:</p>
+      <table>
+        <tr><th>Question</th><th>Reply</th></tr>
+        <tr><td>who wrote you?</td><td>I'm nobody Who are you Are you nobody too</td></tr>
+        <tr><td>are you alive?</td><td>i'm a little bird</td></tr>
+        <tr><td>what should I do tonight?</td><td>know who you are</td></tr>
+        <tr><td>should I text him back?</td><td>don't tell you know How dreary to somebody public</td></tr>
+      </table>
+      <p>Two things surprised me. Gemini kept the rule every time: no live reply used a word from outside the page, so the refusal system has only been tested with staged replies so far. And the poems are short enough that the voice comes through almost whole. "who wrote you?" is close to Dickinson's own lines reordered, which is a tiny version of what Parrish is talking about: at that scale the collage barely hides its source.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Screens</h2>
+    <div class="content">
+      <figure class="phone">
+        <img src="media/phone.png" alt="The sketch on a phone: the page of clippings above the ransom note." width="390" height="844">
+        <figcaption>On a phone the note sits under the page. Long pages shrink to fit, up to the 6,000 character limit.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Next</h2>
+    <div class="content">
+      <p>The obvious next test is a page of my own writing instead of Dickinson's, and a page long enough that the model has real choices. Parrish also notes that ransom notes are made to erase marks of the self, like handwriting, so swapping the clippings for words in my own handwriting would flip that around.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>References</h2>
+    <div class="content">
+      <ul>
+        <li>Allison Parrish, <a href="https://posts.decontextualize.com/language-models-ransom-notes/">Language models can only write ransom notes</a> (2024)</li>
+        <li>Class examples: <a href="https://editor.p5js.org/yining/sketches/cyjAvH2uO">Gemini API + p5.js</a>, <a href="https://github.com/ml5js/Intro-ML-Arts-IMA-F26/tree/main/09-llms">week 9 notes</a></li>
+        <li>Emily Dickinson's poems (public domain). <a href="https://p5js.org/">p5.js</a> 1.11.10.</li>
+      </ul>
+      <p><b>AI assistance:</b> Claude (Claude Code, Opus 5.5) suggested this idea from a brainstorm, and I chose it. Claude wrote the sketch, the tests and a draft of this post, read the Parrish essay to source the quote, and ran the browser and live Gemini tests. The replies above come from those test runs.</p>
+    </div>
+  </section>
+
+  <footer>Lucy Liu · ML Arts · <a href="https://github.com/wl3512-lab/ml-arts-ransom-note">Source on GitHub</a></footer>
+</main>
+</body>
+</html>
